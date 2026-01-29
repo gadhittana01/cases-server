@@ -19,7 +19,7 @@ require (
 	golang.org/x/crypto v0.46.0
 )
 
-replace github.com/gadhittana01/cases-modules => ../go-modules
+// replace github.com/gadhittana01/cases-modules => ../go-modules
 
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
