@@ -8,8 +8,7 @@
   ],
   "functions": {
     "api/index.go": {
-      "maxDuration": 60,
-      "runtime": "go1.x"
+      "maxDuration": 60
     }
   }
 }
