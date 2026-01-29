@@ -32,42 +32,28 @@
 
 The serverless function handler is already created at `server/api/index.go`. This wraps your Gin router to work with Vercel's serverless functions.
 
-### 2. Handle Monorepo Structure
-
-**Important**: Your project uses a monorepo with `go-modules` as a local dependency. You have two options:
-
-#### Option A: Deploy from Root (Recommended)
-
-1. Keep root directory as repository root (don't set a root directory)
-2. Update `vercel.json` to point to `server/api/index.go`
-3. Vercel will have access to both `server/` and `go-modules/` directories
-
-#### Option B: Copy go-modules into server
-
-1. Copy `go-modules` into `server/go-modules`
-2. Update `go.mod` replace directive to `./go-modules`
-3. Set root directory to `server`
-
-**We'll use Option A** - deploy from root with updated paths.
-
-### 3. Connect Repository to Vercel
+### 2. Connect Repository to Vercel
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click "Add New Project"
 3. Import your Git repository
-4. **Don't set a root directory** (leave it as repository root)
+4. **Set Root Directory to `server`** ⚠️ **Important**
+   - Go to Settings → General
+   - Under "Root Directory", click "Edit"
+   - Select `server` folder
+   - Save changes
 
-### 4. Configure Project Settings
+### 3. Configure Project Settings
 
 - **Framework Preset**: Other (or leave blank)
-- **Root Directory**: Leave empty (use repository root) ⚠️ **Important**
+- **Root Directory**: `server` ⚠️ **Set this in Vercel project settings**
 - **Build Command**: Leave empty (Vercel auto-detects Go)
 - **Output Directory**: Leave empty
 - **Install Command**: Leave empty
 
-**Note**: The `vercel.json` file is configured to use `server/api/index.go` as the entry point, so we deploy from the repository root to access both `server/` and `go-modules/` directories.
+**Note**: The `vercel.json` file is in the `server/` directory and configured to use `api/index.go` as the entry point.
 
-### 5. Set Environment Variables
+### 4. Set Environment Variables
 
 In Vercel Dashboard → Your Project → Settings → Environment Variables, add:
 
@@ -119,7 +105,7 @@ migrate -path db/migration -database "$DB_CONN_STRING" up
 - Run migrations via a separate service or CI/CD pipeline
 - Disable auto-migration in production
 
-### 6. Deploy
+### 5. Deploy
 
 1. Click "Deploy"
 2. Vercel will:
@@ -127,7 +113,7 @@ migrate -path db/migration -database "$DB_CONN_STRING" up
    - Build the serverless function
    - Deploy to a unique URL
 
-### 7. Verify Deployment
+### 6. Verify Deployment
 
 1. Check deployment logs for any errors
 2. Test health endpoint: `https://your-project.vercel.app/health`
@@ -137,9 +123,9 @@ migrate -path db/migration -database "$DB_CONN_STRING" up
 ## Project Structure for Vercel
 
 ```
-cases-app/                 # Repository root (Vercel root directory)
-├── vercel.json            # Vercel configuration (at root)
-├── server/
+cases-app/                 # Repository root
+├── server/                # Vercel root directory (set in project settings)
+│   ├── vercel.json        # Vercel configuration
 │   ├── api/
 │   │   └── index.go       # Vercel serverless function handler
 │   ├── db/
@@ -148,10 +134,14 @@ cases-app/                 # Repository root (Vercel root directory)
 │   ├── service/
 │   ├── routes/
 │   └── ... (other files)
-└── go-modules/            # Shared Go utilities (accessible from root)
+└── go-modules/            # Shared Go utilities (needs to be accessible)
     ├── middleware/
     └── utils/
 ```
+
+**Note**: Since `go-modules` is outside the `server/` directory, you may need to:
+1. Copy `go-modules` into `server/go-modules`, OR
+2. Update `server/go.mod` replace directive to point to `../go-modules`
 
 ## Environment Variables Reference
 
