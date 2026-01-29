@@ -8,7 +8,7 @@ import (
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
 	"github.com/gadhittana01/cases-app-server/utils"
-	configUtils "github.com/gadhittana01/go-modules-dependencies/utils"
+	configUtils "github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"

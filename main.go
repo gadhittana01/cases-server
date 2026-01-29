@@ -1,50 +1,16 @@
 package main
 
 import (
-	"context"
-	"fmt"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	serverUtils "github.com/gadhittana01/cases-app-server/utils"
-	"github.com/gadhittana01/go-modules-dependencies/utils"
-	pusher "github.com/pusher/pusher-http-go/v5"
+	"github.com/gadhittana01/cases-app-server/providers"
+	"github.com/gadhittana01/cases-modules/utils"
 )
 
-// NewS3Client creates a singleton S3 client
-func NewS3Client(config *utils.Config) (*s3.Client, error) {
-	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(),
-		awsconfig.WithRegion(config.StorageRegion),
-		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			config.StorageAccessKey,
-			config.StorageSecretKey,
-			"",
-		)),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
-	}
-
-	// Create S3 client with custom endpoint
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String(config.StorageEndpoint)
-		o.UsePathStyle = true // Required for S3-compatible APIs
-	})
-
-	return s3Client, nil
-}
-
-// NewPresignClient creates a singleton Presign client
-func NewPresignClient(s3Client *s3.Client) *s3.PresignClient {
-	return s3.NewPresignClient(s3Client)
-}
-
-// NewPusherClient creates a singleton Pusher client
-func NewPusherClient(config *utils.Config) *pusher.Client {
-	return serverUtils.NewPusherClient(config)
-}
+// Re-export provider functions for wire
+var (
+	NewS3Client      = providers.NewS3Client
+	NewPresignClient = providers.NewPresignClient
+	NewPusherClient  = providers.NewPusherClient
+)
 
 func main() {
 	config := utils.CheckAndSetConfig("./config", "app")
@@ -67,10 +33,10 @@ func main() {
 	}
 
 	// Initialize app using wire-generated code
-	app, err := InitializeApp(DBpool, config)
+	appInstance, err := InitializeApp(DBpool, config)
 	if err != nil {
 		panic(err)
 	}
 
-	app.Start()
+	appInstance.Start()
 }

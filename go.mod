@@ -7,18 +7,19 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.26.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.12
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.5
-	github.com/gadhittana01/go-modules-dependencies v1.0.1
+	github.com/gadhittana01/cases-modules v1.0.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.5.0
 	github.com/google/wire v0.7.0
 	github.com/jackc/pgx/v5 v5.5.1
+	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/stripe/stripe-go/v76 v76.25.0
 	golang.org/x/crypto v0.46.0
 )
 
-replace github.com/gadhittana01/go-modules-dependencies => ../go-modules
+// replace github.com/gadhittana01/cases-modules => ../go-modules
 
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
@@ -60,7 +61,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/pusher/pusher-http-go/v5 v5.1.1 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.54.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

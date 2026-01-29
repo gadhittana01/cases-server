@@ -8,7 +8,7 @@ import (
 	"github.com/gadhittana01/cases-app-server/handler"
 	"github.com/gadhittana01/cases-app-server/routes"
 	"github.com/gadhittana01/cases-app-server/service"
-	"github.com/gadhittana01/go-modules-dependencies/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/wire"
 )
 

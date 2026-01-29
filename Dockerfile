@@ -13,7 +13,7 @@ COPY go-modules ./go-modules
 COPY server/go.mod server/go.sum ./
 
 # Update replace directive to point to local go-modules
-RUN sed -i 's|replace github.com/gadhittana01/go-modules-dependencies => ../go-modules|replace github.com/gadhittana01/go-modules-dependencies => ./go-modules|g' go.mod
+RUN sed -i 's|replace github.com/gadhittana01/cases-modules => ../go-modules|replace github.com/gadhittana01/cases-modules => ./go-modules|g' go.mod
 
 # Download dependencies
 RUN go mod download
@@ -22,7 +22,7 @@ RUN go mod download
 COPY server/ .
 
 # Update go.mod again after copying (in case it was overwritten)
-RUN sed -i 's|replace github.com/gadhittana01/go-modules-dependencies => ../go-modules|replace github.com/gadhittana01/go-modules-dependencies => ./go-modules|g' go.mod
+RUN sed -i 's|replace github.com/gadhittana01/cases-modules => ../go-modules|replace github.com/gadhittana01/cases-modules => ./go-modules|g' go.mod
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server main.go wire_gen.go injector.go

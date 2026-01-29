@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/gadhittana01/cases-app-server/handler"
-	"github.com/gadhittana01/go-modules-dependencies/middleware"
-	"github.com/gadhittana01/go-modules-dependencies/utils"
+	"github.com/gadhittana01/cases-modules/middleware"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/gin-gonic/gin"
 )
 

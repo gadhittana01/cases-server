@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gadhittana01/cases-app-server/service"
-	"github.com/gadhittana01/go-modules-dependencies/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/webhook"
@@ -15,7 +15,7 @@ import (
 
 type WebhookHandler struct {
 	paymentService *service.PaymentService
-	webhookSecret   string
+	webhookSecret  string
 }
 
 func NewWebhookHandler(paymentService *service.PaymentService, config *utils.Config) *WebhookHandler {

@@ -3,7 +3,7 @@ package utils
 import (
 	"time"
 
-	"github.com/gadhittana01/go-modules-dependencies/middleware"
+	"github.com/gadhittana01/cases-modules/middleware"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )

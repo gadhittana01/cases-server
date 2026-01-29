@@ -3,7 +3,7 @@ package utils
 import (
 	"log"
 
-	"github.com/gadhittana01/go-modules-dependencies/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	pusher "github.com/pusher/pusher-http-go/v5"
 )
 

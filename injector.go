@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gadhittana01/go-modules-dependencies/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/gin-gonic/gin"
 )
 

@@ -16,7 +16,7 @@ import (
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
 	"github.com/gadhittana01/cases-app-server/utils"
-	configUtils "github.com/gadhittana01/go-modules-dependencies/utils"
+	configUtils "github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 )
 
@@ -106,10 +106,10 @@ func (s *FileService) UploadCaseFile(ctx context.Context, caseID uuid.UUID, file
 	}
 
 	return &dto.FileResponse{
-		ID:       fileRecord.ID,
-		FileName: fileRecord.FileName,
-		FileSize: fileRecord.FileSize,
-		MimeType: fileRecord.MimeType,
+		ID:        fileRecord.ID,
+		FileName:  fileRecord.FileName,
+		FileSize:  fileRecord.FileSize,
+		MimeType:  fileRecord.MimeType,
 		CreatedAt: utils.PgtypeTimeToTime(fileRecord.CreatedAt),
 	}, nil
 }
