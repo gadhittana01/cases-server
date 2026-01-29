@@ -1,0 +1,16 @@
+# Git
+.git
+.gitignore
+
+# Environment files (we copy config separately)
+config/*.env
+!config/app.env.example
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+*.test
+*.out
+server
