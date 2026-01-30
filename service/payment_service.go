@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
@@ -364,8 +363,6 @@ func (s *PaymentService) HandlePaymentWebhook(ctx context.Context, checkoutSessi
 	if err != nil {
 		return err
 	}
-
-	time.Sleep(10 * time.Second)
 
 	// Emit Pusher event after successful payment processing
 	channel := fmt.Sprintf("payment-%s", paymentLinkID)
