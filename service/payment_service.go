@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
@@ -16,6 +17,8 @@ import (
 	pusher "github.com/pusher/pusher-http-go/v5"
 	"github.com/shopspring/decimal"
 	stripe "github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/checkout/session"
+	"github.com/stripe/stripe-go/v76/paymentintent"
 	"github.com/stripe/stripe-go/v76/paymentlink"
 	"github.com/stripe/stripe-go/v76/price"
 	"github.com/stripe/stripe-go/v76/product"
@@ -212,6 +215,68 @@ func (s *PaymentService) AcceptQuote(ctx context.Context, quoteID, clientID uuid
 	}, nil
 }
 
+// HandleChargeUpdated processes charge.updated webhook event
+// This handles charge updates and processes successful payments
+func (s *PaymentService) HandleChargeUpdated(ctx context.Context, charge *stripe.Charge) error {
+	// Only process succeeded and paid charges
+	if charge.Status != stripe.ChargeStatusSucceeded || !charge.Paid {
+		log.Printf("Charge %s not succeeded or not paid, status: %s, paid: %v", charge.ID, charge.Status, charge.Paid)
+		return nil // Not an error, just not ready to process
+	}
+
+	// Get payment intent ID from charge
+	if charge.PaymentIntent == nil {
+		return fmt.Errorf("charge has no payment intent")
+	}
+
+	paymentIntentID := charge.PaymentIntent.ID
+	if paymentIntentID == "" {
+		return fmt.Errorf("payment intent ID is empty")
+	}
+
+	// Retrieve payment intent from Stripe to get checkout session
+	pi, err := paymentintent.Get(paymentIntentID, nil)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve payment intent: %w", err)
+	}
+
+	// Get checkout session from payment intent
+	// Payment intents created from payment links have a checkout session
+	var checkoutSession *stripe.CheckoutSession
+	if pi.Metadata != nil {
+		// Try to get checkout session ID from metadata
+		if sessionID, ok := pi.Metadata["checkout_session_id"]; ok && sessionID != "" {
+			session, err := session.Get(sessionID, nil)
+			if err != nil {
+				return fmt.Errorf("failed to retrieve checkout session: %w", err)
+			}
+			checkoutSession = session
+		}
+	}
+
+	// If no checkout session in metadata, try to find it by listing checkout sessions
+	if checkoutSession == nil {
+		params := &stripe.CheckoutSessionListParams{}
+		params.Filters.AddFilter("payment_intent", "", paymentIntentID)
+		params.Limit = stripe.Int64(1)
+
+		iter := session.List(params)
+		if iter.Next() {
+			checkoutSession = iter.CheckoutSession()
+		}
+		if err := iter.Err(); err != nil {
+			return fmt.Errorf("failed to list checkout sessions: %w", err)
+		}
+	}
+
+	if checkoutSession == nil {
+		return fmt.Errorf("checkout session not found for payment intent %s", paymentIntentID)
+	}
+
+	// Use existing payment webhook handler logic
+	return s.HandlePaymentWebhook(ctx, checkoutSession)
+}
+
 // HandlePaymentWebhook processes checkout.session.completed webhook event
 // This is the ONLY place where quote acceptance, case engagement, and access happen
 func (s *PaymentService) HandlePaymentWebhook(ctx context.Context, checkoutSession *stripe.CheckoutSession) error {
@@ -299,6 +364,9 @@ func (s *PaymentService) HandlePaymentWebhook(ctx context.Context, checkoutSessi
 	if err != nil {
 		return err
 	}
+
+	time.Sleep(10 * time.Second)
+
 	// Emit Pusher event after successful payment processing
 	channel := fmt.Sprintf("payment-%s", paymentLinkID)
 	eventData := map[string]interface{}{
@@ -314,6 +382,8 @@ func (s *PaymentService) HandlePaymentWebhook(ctx context.Context, checkoutSessi
 		log.Printf("Failed to emit Pusher event: %v", err)
 		// Don't fail the transaction if Pusher fails
 	}
+
+	log.Printf("Pusher event emitted: %v", eventData)
 
 	return nil
 }

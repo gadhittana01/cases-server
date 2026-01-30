@@ -63,15 +63,15 @@ func (h *WebhookHandler) HandleStripeWebhook(c *gin.Context) {
 
 	// Route event to appropriate handler
 	switch event.Type {
-	case stripe.EventTypeCheckoutSessionCompleted:
-		var session stripe.CheckoutSession
-		if err := json.Unmarshal(event.Data.Raw, &session); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse checkout session"})
+	case stripe.EventTypeChargeUpdated:
+		var charge stripe.Charge
+		if err := json.Unmarshal(event.Data.Raw, &charge); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse charge"})
 			return
 		}
 
-		if err := h.paymentService.HandlePaymentWebhook(c.Request.Context(), &session); err != nil {
-			log.Printf("Error processing payment webhook: %v", err)
+		if err := h.paymentService.HandleChargeUpdated(c.Request.Context(), &charge); err != nil {
+			log.Printf("Error processing charge updated webhook: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
