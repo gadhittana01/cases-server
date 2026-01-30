@@ -7,7 +7,7 @@ import (
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
-	"github.com/gadhittana01/cases-app-server/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
@@ -24,7 +24,7 @@ func NewQuoteService(repo repository.Repository) *QuoteService {
 }
 
 func (s *QuoteService) CreateQuote(ctx context.Context, caseID, lawyerID uuid.UUID, req dto.SubmitQuoteRequest) (*dto.QuoteResponse, error) {
-	// Verify case exists and is open
+
 	caseRecord, err := s.repo.GetCaseByID(ctx, caseID)
 	if err != nil {
 		return nil, fmt.Errorf("case not found: %w", err)
@@ -33,7 +33,7 @@ func (s *QuoteService) CreateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 		return nil, fmt.Errorf("case is not open for quotes")
 	}
 
-	// Check if quote already exists - prevent duplicate submission
+
 	existingQuote, err := s.repo.GetQuoteByCaseAndLawyer(ctx, &repository.GetQuoteByCaseAndLawyerParams{
 		CaseID:   caseID,
 		LawyerID: lawyerID,
@@ -45,13 +45,13 @@ func (s *QuoteService) CreateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 		return nil, fmt.Errorf("failed to check existing quote: %w", err)
 	}
 
-	// Parse amount
+
 	amount, err := decimal.NewFromString(req.Amount)
 	if err != nil {
 		return nil, fmt.Errorf("invalid amount format: %w", err)
 	}
 
-	// Create new quote
+
 	quote, err := s.repo.CreateQuote(ctx, &repository.CreateQuoteParams{
 		CaseID:       caseID,
 		LawyerID:     lawyerID,
@@ -61,7 +61,7 @@ func (s *QuoteService) CreateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 		Status:       "proposed",
 	})
 	if err != nil {
-		// Check for unique constraint violation
+
 		if err.Error() != "" {
 			return nil, fmt.Errorf("failed to create quote: %w", err)
 		}
@@ -72,7 +72,7 @@ func (s *QuoteService) CreateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 }
 
 func (s *QuoteService) UpdateQuote(ctx context.Context, caseID, lawyerID uuid.UUID, req dto.SubmitQuoteRequest) (*dto.QuoteResponse, error) {
-	// Verify case exists and is open
+
 	caseRecord, err := s.repo.GetCaseByID(ctx, caseID)
 	if err != nil {
 		return nil, fmt.Errorf("case not found: %w", err)
@@ -81,7 +81,7 @@ func (s *QuoteService) UpdateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 		return nil, fmt.Errorf("case is not open for quotes")
 	}
 
-	// Get existing quote
+
 	existingQuote, err := s.repo.GetQuoteByCaseAndLawyer(ctx, &repository.GetQuoteByCaseAndLawyerParams{
 		CaseID:   caseID,
 		LawyerID: lawyerID,
@@ -93,18 +93,18 @@ func (s *QuoteService) UpdateQuote(ctx context.Context, caseID, lawyerID uuid.UU
 		return nil, fmt.Errorf("failed to get existing quote: %w", err)
 	}
 
-	// Prevent updating quotes that are already accepted
+
 	if existingQuote.Status == "accepted" {
 		return nil, fmt.Errorf("quote already accepted, cannot update")
 	}
 
-	// Parse amount
+
 	amount, err := decimal.NewFromString(req.Amount)
 	if err != nil {
 		return nil, fmt.Errorf("invalid amount format: %w", err)
 	}
 
-	// Update existing quote (UpdateQuote resets status to "proposed" if it was "rejected")
+
 	quote, err := s.repo.UpdateQuote(ctx, &repository.UpdateQuoteParams{
 		ID:           existingQuote.ID,
 		Amount:       utils.DecimalToPgtypeNumeric(amount),
@@ -144,7 +144,7 @@ func (s *QuoteService) GetQuoteByCaseAndLawyer(ctx context.Context, caseID, lawy
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil // No quote exists, return nil (not an error)
+			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to get quote: %w", err)
 	}

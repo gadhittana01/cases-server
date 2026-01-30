@@ -51,8 +51,8 @@ type MarketplaceCaseResponse struct {
 	Description  string         `json:"description"`
 	CreatedAt    time.Time      `json:"created_at"`
 	Status       string         `json:"status,omitempty"`
-	Files        []FileResponse `json:"files,omitempty"` // Only included if lawyer has accepted quote
-	HasSubmitted bool           `json:"has_submitted"`   // True if lawyer has submitted a quote for this case
+	Files        []FileResponse `json:"files,omitempty"`
+	HasSubmitted bool           `json:"has_submitted"`
 }
 
 type QuoteResponse struct {
@@ -87,7 +87,6 @@ type PaginatedResponse struct {
 }
 
 type PaymentIntentResponse struct {
-	ClientSecret    string `json:"client_secret"`     // Payment Link URL
-	PaymentIntentID string `json:"payment_intent_id"` // Payment Link ID
-	PaymentLinkURL  string `json:"payment_link_url"`  // Explicit payment link URL
+	PaymentIntentID string `json:"payment_intent_id"`
+	PaymentLinkURL  string `json:"payment_link_url"`
 }

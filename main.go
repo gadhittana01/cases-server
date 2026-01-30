@@ -5,7 +5,7 @@ import (
 	"github.com/gadhittana01/cases-modules/utils"
 )
 
-// Re-export provider functions for wire
+
 var (
 	NewS3Client      = providers.NewS3Client
 	NewPresignClient = providers.NewPresignClient
@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	// Initialize app using wire-generated code
+
 	appInstance, err := InitializeApp(DBpool, config)
 	if err != nil {
 		panic(err)

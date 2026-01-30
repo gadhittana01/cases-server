@@ -124,7 +124,7 @@ func (h *QuoteHandler) GetMyQuotes(c *gin.Context) {
 	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	
-	// Support both 'limit' and 'page_size' query parameters
+
 	pageSizeStr := c.Query("limit")
 	if pageSizeStr == "" {
 		pageSizeStr = c.DefaultQuery("page_size", "10")

@@ -7,8 +7,7 @@ import (
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
-	"github.com/gadhittana01/cases-app-server/utils"
-	configUtils "github.com/gadhittana01/cases-modules/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +18,7 @@ type UserService struct {
 	jwtSecret string
 }
 
-func NewUserService(repo repository.Repository, config *configUtils.Config) *UserService {
+func NewUserService(repo repository.Repository, config *utils.Config) *UserService {
 	jwtSecret := config.JWTSecret
 	return &UserService{
 		repo:      repo,
@@ -28,27 +27,20 @@ func NewUserService(repo repository.Repository, config *configUtils.Config) *Use
 }
 
 func (s *UserService) Signup(ctx context.Context, req dto.SignupRequest) (*dto.AuthResponse, error) {
-	// Check if user already exists
 	_, err := s.repo.GetUserByEmail(ctx, req.Email)
-	if err != nil {
-		// If error is "no rows", user doesn't exist - proceed with signup
-		if !errors.Is(err, pgx.ErrNoRows) {
-			// Database error (not "not found")
-			return nil, fmt.Errorf("failed to check existing user: %w", err)
-		}
-		// pgx.ErrNoRows means user doesn't exist, continue with signup
-	} else {
-		// No error means user was found and exists
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("failed to check existing user: %w", err)
+	}
+
+	if err == nil {
 		return nil, fmt.Errorf("user with email %s already exists", req.Email)
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Create user
 	var jurisdiction *string
 	var barNumber *string
 	if req.Jurisdiction != "" {
@@ -70,7 +62,6 @@ func (s *UserService) Signup(ctx context.Context, req dto.SignupRequest) (*dto.A
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// Generate JWT token
 	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role, s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
@@ -96,13 +87,11 @@ func (s *UserService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Aut
 		return nil, errors.New("invalid email or password")
 	}
 
-	// Verify password
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
 		return nil, errors.New("invalid email or password")
 	}
 
-	// Generate JWT token
 	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role, s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)

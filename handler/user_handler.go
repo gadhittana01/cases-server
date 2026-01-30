@@ -59,7 +59,6 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	}
 
 	userIDStr := userID.(string)
-	// Parse UUID from string
 	userUUID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})

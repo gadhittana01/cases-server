@@ -26,7 +26,6 @@ func NewWebhookHandler(paymentService *service.PaymentService, config *utils.Con
 }
 
 func (h *WebhookHandler) HandleStripeWebhook(c *gin.Context) {
-	// Read the request body (must be raw bytes for signature verification)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read request body"})
@@ -38,20 +37,17 @@ func (h *WebhookHandler) HandleStripeWebhook(c *gin.Context) {
 		return
 	}
 
-	// Get Stripe signature header
 	signature := c.GetHeader("Stripe-Signature")
 	if signature == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing Stripe-Signature header"})
 		return
 	}
 
-	// Check if webhook secret is configured
 	if h.webhookSecret == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "webhook secret not configured"})
 		return
 	}
 
-	// Verify webhook signature
 	event, err := webhook.ConstructEventWithOptions(body, signature, h.webhookSecret, webhook.ConstructEventOptions{
 		IgnoreAPIVersionMismatch: true,
 	})
@@ -61,7 +57,6 @@ func (h *WebhookHandler) HandleStripeWebhook(c *gin.Context) {
 		return
 	}
 
-	// Route event to appropriate handler
 	switch event.Type {
 	case stripe.EventTypeChargeUpdated:
 		var charge stripe.Charge
@@ -78,7 +73,6 @@ func (h *WebhookHandler) HandleStripeWebhook(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{"status": "success"})
 	default:
-		// Return success for unhandled events (Stripe expects 2xx response)
 		c.JSON(http.StatusOK, gin.H{"status": "unhandled event type", "event_type": event.Type})
 	}
 }

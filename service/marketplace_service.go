@@ -9,7 +9,7 @@ import (
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
-	"github.com/gadhittana01/cases-app-server/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 )
 
@@ -34,10 +34,8 @@ func (s *MarketplaceService) ListOpenCases(ctx context.Context, filters dto.Mark
 	}
 	offset := (page - 1) * pageSize
 
-	// Category filter - empty string means no filter (SQL handles this)
 	categoryFilter := filters.Category
 
-	// Created since filter - empty string means no filter
 	var createdSinceFilter time.Time
 	if filters.CreatedSince != "" {
 		parsedTime, err := time.Parse(time.RFC3339, filters.CreatedSince)
@@ -67,7 +65,7 @@ func (s *MarketplaceService) ListOpenCases(ctx context.Context, filters dto.Mark
 
 	result := make([]dto.MarketplaceCaseResponse, 0, len(cases))
 	for _, caseRecord := range cases {
-		// Anonymize description - remove emails and phone numbers
+
 		description := anonymizeDescription(caseRecord.Description)
 
 		result = append(result, dto.MarketplaceCaseResponse{
@@ -88,7 +86,6 @@ func (s *MarketplaceService) GetCaseForMarketplace(ctx context.Context, caseID u
 		return nil, fmt.Errorf("case not found: %w", err)
 	}
 
-	// Anonymize description (always anonymized for marketplace)
 	description := anonymizeDescription(caseRecord.Description)
 
 	response := &dto.MarketplaceCaseResponse{
@@ -101,40 +98,34 @@ func (s *MarketplaceService) GetCaseForMarketplace(ctx context.Context, caseID u
 		HasSubmitted: false,
 	}
 
-	// If lawyerID is provided, check if they have submitted a quote and/or have an accepted quote
-	if lawyerID != nil {
-		// Check if lawyer has submitted a quote for this case
-		quote, err := s.repo.GetQuoteByCaseAndLawyer(ctx, &repository.GetQuoteByCaseAndLawyerParams{
-			CaseID:   caseID,
-			LawyerID: *lawyerID,
-		})
-		if err == nil && quote != nil {
-			response.HasSubmitted = true
-		}
+	quote, err := s.repo.GetQuoteByCaseAndLawyer(ctx, &repository.GetQuoteByCaseAndLawyerParams{
+		CaseID:   caseID,
+		LawyerID: *lawyerID,
+	})
+	if err == nil && quote != nil {
+		response.HasSubmitted = true
+	}
 
-		// Check if lawyer has an accepted quote and case is engaged
-		acceptedQuote, err := s.repo.GetAcceptedQuoteByCaseID(ctx, caseID)
-		if err == nil && acceptedQuote != nil && acceptedQuote.LawyerID == *lawyerID {
-			// Lawyer has accepted quote - check if case is engaged
-			if caseRecord.Status == "engaged" {
-				// Return full description (not anonymized) and files
-				response.Description = caseRecord.Description
+	acceptedQuote, err := s.repo.GetAcceptedQuoteByCaseID(ctx, caseID)
+	if err == nil && acceptedQuote != nil && acceptedQuote.LawyerID == *lawyerID {
 
-				// Get files
-				caseFiles, err := s.repo.GetCaseFilesByCaseID(ctx, caseID)
-				if err == nil {
-					files := make([]dto.FileResponse, 0, len(caseFiles))
-					for _, file := range caseFiles {
-						files = append(files, dto.FileResponse{
-							ID:        file.ID,
-							FileName:  file.FileName,
-							FileSize:  file.FileSize,
-							MimeType:  file.MimeType,
-							CreatedAt: utils.PgtypeTimeToTime(file.CreatedAt),
-						})
-					}
-					response.Files = files
+		if caseRecord.Status == "engaged" {
+
+			response.Description = caseRecord.Description
+
+			caseFiles, err := s.repo.GetCaseFilesByCaseID(ctx, caseID)
+			if err == nil {
+				files := make([]dto.FileResponse, 0, len(caseFiles))
+				for _, file := range caseFiles {
+					files = append(files, dto.FileResponse{
+						ID:        file.ID,
+						FileName:  file.FileName,
+						FileSize:  file.FileSize,
+						MimeType:  file.MimeType,
+						CreatedAt: utils.PgtypeTimeToTime(file.CreatedAt),
+					})
 				}
+				response.Files = files
 			}
 		}
 	}
@@ -143,15 +134,13 @@ func (s *MarketplaceService) GetCaseForMarketplace(ctx context.Context, caseID u
 }
 
 func anonymizeDescription(description string) string {
-	// Remove email addresses
+
 	emailRegex := regexp.MustCompile(`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`)
 	description = emailRegex.ReplaceAllString(description, "[email redacted]")
 
-	// Remove phone numbers (various formats)
 	phoneRegex := regexp.MustCompile(`(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}`)
 	description = phoneRegex.ReplaceAllString(description, "[phone redacted]")
 
-	// Remove common patterns that might reveal identity
 	description = strings.ReplaceAll(description, "@", "[at]")
 
 	return description

@@ -29,24 +29,19 @@ func SetupRoutes(
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Public routes
 	public := r.Group("/api/v1")
 	{
 		public.POST("/auth/signup/client", userHandler.Signup)
 		public.POST("/auth/signup/lawyer", userHandler.Signup)
 		public.POST("/auth/login", userHandler.Login)
-		// Stripe webhook (must be public, signature verification handles security)
 		public.POST("/webhooks/stripe", webhookHandler.HandleStripeWebhook)
 	}
 
-	// Protected routes
 	api := r.Group("/api/v1")
 	api.Use(middleware.AuthMiddleware(jwtSecret))
 	{
-		// User routes
 		api.GET("/auth/profile", userHandler.GetProfile)
 
-		// Client routes
 		client := api.Group("")
 		client.Use(middleware.RequireRole("client"))
 		{
@@ -57,7 +52,6 @@ func SetupRoutes(
 			client.POST("/client/quotes/accept", paymentHandler.AcceptQuote)
 		}
 
-		// Lawyer routes
 		lawyer := api.Group("")
 		lawyer.Use(middleware.RequireRole("lawyer"))
 		{
@@ -69,7 +63,6 @@ func SetupRoutes(
 			lawyer.GET("/lawyer/quotes", quoteHandler.GetMyQuotes)
 		}
 
-		// Shared routes
 		api.GET("/files/:id/download", fileHandler.GenerateDownloadURL)
 	}
 

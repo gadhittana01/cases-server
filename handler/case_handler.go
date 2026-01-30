@@ -114,8 +114,6 @@ func (h *CaseHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// Authorization is handled in the file service
-
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})

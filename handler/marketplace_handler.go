@@ -55,7 +55,7 @@ func (h *MarketplaceHandler) GetCaseForMarketplace(c *gin.Context) {
 		return
 	}
 
-	// Get lawyer ID from JWT token (always exists because route is protected by RequireRole("lawyer"))
+
 	userID, _ := c.Get("user_id")
 	userIDStr := userID.(string)
 	lawyerID, err := uuid.Parse(userIDStr)

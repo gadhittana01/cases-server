@@ -6,7 +6,7 @@ import (
 
 	"github.com/gadhittana01/cases-app-server/db/repository"
 	"github.com/gadhittana01/cases-app-server/dto"
-	"github.com/gadhittana01/cases-app-server/utils"
+	"github.com/gadhittana01/cases-modules/utils"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -105,12 +105,12 @@ func (s *CaseService) GetCaseByID(ctx context.Context, caseID uuid.UUID, userID 
 		return nil, fmt.Errorf("case not found: %w", err)
 	}
 
-	// Authorization check
+
 	if userRole == "client" && caseRecord.ClientID != userID {
 		return nil, fmt.Errorf("unauthorized: you can only view your own cases")
 	}
 
-	// Get quotes
+
 	quotes, err := s.repo.GetQuotesByCaseID(ctx, caseID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get quotes: %w", err)
@@ -132,7 +132,7 @@ func (s *CaseService) GetCaseByID(ctx context.Context, caseID uuid.UUID, userID 
 		})
 	}
 
-	// Get files (only if client or accepted lawyer)
+
 	files := []dto.FileResponse{}
 	if userRole == "client" || (userRole == "lawyer" && caseRecord.Status == "engaged") {
 		caseFiles, _ := s.repo.GetCaseFilesByCaseID(ctx, caseID)
