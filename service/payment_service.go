@@ -209,7 +209,17 @@ func (s *PaymentService) HandleChargeUpdated(ctx context.Context, charge *stripe
 	}
 
 	if checkoutSession == nil {
-		return fmt.Errorf("checkout session not found for payment intent %s", paymentIntentID)
+		params := &stripe.CheckoutSessionListParams{}
+		params.Filters.AddFilter("payment_intent", "", paymentIntentID)
+		params.Limit = stripe.Int64(1)
+
+		iter := session.List(params)
+		if iter.Next() {
+			checkoutSession = iter.CheckoutSession()
+		}
+		if err := iter.Err(); err != nil {
+			return fmt.Errorf("failed to list checkout sessions: %w", err)
+		}
 	}
 
 	return s.HandlePaymentWebhook(ctx, checkoutSession)
